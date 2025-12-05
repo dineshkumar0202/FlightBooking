@@ -1,7 +1,7 @@
 import { api } from './api'
 
 export const getFlights = async () => {
-  const res = await api.get('/flights')
+  const res = await api.get('/flights')   // ✅ this hits /api/flights
   return res.data
 }
 

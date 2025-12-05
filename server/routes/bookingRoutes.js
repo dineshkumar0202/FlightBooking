@@ -1,8 +1,9 @@
 import express from "express";
-import { createBooking } from "../controllers/bookingController.js";
 import { protect } from "../middleware/authMiddleware.js";
+import { createBooking } from "../controllers/bookingController.js";
 
 const r = express.Router();
-r.post("/create", protect, createBooking);
+
+r.post("/", protect, createBooking);
 
 export default r;

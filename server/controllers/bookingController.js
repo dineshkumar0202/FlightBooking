@@ -1,23 +1,46 @@
 import Booking from "../models/Booking.js";
+import Flight from "../models/Flight.js";
 
 export const createBooking = async (req, res) => {
   try {
-    const { flightId, passengers, totalPrice } = req.body;
+    const userId = req.user.id;  // comes from JWT middleware
+    const { flightId, seats } = req.body;
 
-    if (!flightId || !passengers || !totalPrice) {
-      return res.status(400).json({ msg: "flightId, passengers and totalPrice are required" });
+    if (!flightId || !seats) {
+      return res.status(400).json({ msg: "Missing flightId or seats" });
     }
 
+    const flight = await Flight.findById(flightId);
+    if (!flight) {
+      return res.status(404).json({ msg: "Flight not found" });
+    }
+
+    if (flight.seats < seats) {
+      return res.status(400).json({ msg: "Not enough seats available" });
+    }
+
+    const totalPrice = seats * flight.price;
+
+    // create booking
     const booking = await Booking.create({
-      userId: req.user?._id || null,
-      flightId,
-      passengers,
+      user: userId,
+      flight: flightId,
+      seats,
       totalPrice,
-      status: "confirmed",
+      date: new Date().toISOString().slice(0, 10)
     });
 
-    res.json({ msg: "Booking done", booking });
+    // update remaining seats
+    flight.seats -= seats;
+    await flight.save();
+
+    return res.status(201).json({
+      msg: "Booking success",
+      booking
+    });
+
   } catch (err) {
-    res.status(500).json({ msg: err.message });
+    console.error("🔥 BOOKING ERROR:", err);
+    res.status(500).json({ msg: "Booking failed", error: err.message });
   }
 };

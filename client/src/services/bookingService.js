@@ -9,3 +9,12 @@ export const getMyBookings = async () => {
   const res = await api.get('/bookings/me')
   return res.data
 }
+
+
+export const bookFlight = async (flightId, seats) => {
+  const res = await api.post("/bookings", {
+    flightId,
+    seats
+  });
+  return res.data;
+};
