@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply font-sans bg-slate-50 text-slate-900;
+}
+
+.container-page {
+  @apply max-w-6xl mx-auto px-4;
+}
+
+.glass-card {
+  @apply bg-white/80 backdrop-blur shadow-lg rounded-3xl;
+}
