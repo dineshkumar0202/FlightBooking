@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import * as flightService from "../../services/flightService.js";
 import * as bookingService from "../../services/bookingService.js";
+import { toast } from "react-hot-toast";
 
 const BookingPage = () => {
   const { flightId } = useParams();
@@ -12,9 +13,14 @@ const BookingPage = () => {
 
   useEffect(() => {
     const load = async () => {
-      const all = await flightService.getFlights();
-      const f = all.find((x) => x._id === flightId);
-      setFlight(f || null);
+      try {
+        const all = await flightService.getFlights();
+        const f = all.find((x) => x._id === flightId);
+        setFlight(f || null);
+      } catch (err) {
+        console.error("Error loading flight", err);
+        toast.error("Could not load flight details");
+      }
     };
     load();
   }, [flightId]);
@@ -25,13 +31,13 @@ const BookingPage = () => {
     try {
       const res = await bookingService.createBooking({
         flightId: flight._id,
-        seats: passengers, // 🔥 FIXED
+        seats: passengers,
       });
-
+      toast.success("Booking confirmed!");
       navigate(`/payment/${res.booking._id}`);
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.msg || "Booking failed");
+      toast.error(err.response?.data?.msg || "Booking failed");
     } finally {
       setLoading(false);
     }
@@ -55,16 +61,18 @@ const BookingPage = () => {
           {flight.date} • {flight.time}
         </p>
         <p className="text-sm text-slate-500 mb-2">Airline: {flight.airline}</p>
-        <p className="text-sm text-slate-500 mb-2">Flight No: {flight.flightNumber}</p>
+        <p className="text-sm text-slate-500 mb-2">
+          Flight No: {flight.flightNumber}
+        </p>
         <p className="text-sm text-slate-500 mb-2">Seats left: {flight.seats}</p>
-        <p className="text-lg font-semibold text-slate-900 mt-2">₹{flight.price}</p>
+        <p className="text-lg font-semibold text-slate-900 mt-2">
+          ₹{flight.price}
+        </p>
       </div>
-
       <div className="glass-card p-6">
         <h2 className="text-md font-semibold mb-4 text-slate-900">
           Booking details
         </h2>
-
         <label className="text-sm font-medium text-slate-700">
           Number of passengers
         </label>
@@ -76,7 +84,6 @@ const BookingPage = () => {
           onChange={(e) => setPassengers(Number(e.target.value))}
           className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm mb-4"
         />
-
         <button
           onClick={handleBooking}
           disabled={loading}
